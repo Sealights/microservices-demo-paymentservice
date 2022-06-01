@@ -16,6 +16,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.27.3",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.27.0",
     "@opentelemetry/sdk-node": "^0.27.0",
+    "mocha": "^10.0.0",
     "pino": "^7.8.0",
     "simple-card-validator": "^1.1.0",
     "uuid": "^8.3.2"

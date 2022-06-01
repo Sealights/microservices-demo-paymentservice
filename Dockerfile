@@ -14,6 +14,9 @@
 
 FROM node:16-alpine as base
 
+ARG RM_DEV_SL_TOKEN=local
+ENV RM_DEV_SL_TOKEN ${RM_DEV_SL_TOKEN}
+
 FROM base as builder
 
 # Some packages (e.g. @google-cloud/profiler) require additional
@@ -21,7 +24,7 @@ FROM base as builder
 RUN apk add --update --no-cache \
     python3 \
     make \
-    g++ 
+    g++
 
 WORKDIR /usr/src/app
 
@@ -42,10 +45,11 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY . .
 
 RUN npm install slnodejs
-ENV NODE_DEBUG=sl
-RUN BUILD_NAME=$(date +%F_%T) && ./node_modules/.bin/slnodejs config --tokenfile sltoken.txt --appname "otel_paymentservice" --branch "master" --build "${BUILD_NAME}"
-RUN ./node_modules/.bin/slnodejs build --tokenfile sltoken.txt --buildsessionidfile buildSessionId --workspacepath "." --scm none --es6Modules
+RUN BUILD_NAME=$(date +%F_%T) && ./node_modules/.bin/slnodejs config --token $RM_DEV_SL_TOKEN --appname "paymentservice" --branch "master" --build "${BUILD_NAME}"
+RUN ./node_modules/.bin/slnodejs build --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --workspacepath "." --scm none --es6Modules
+
+RUN ./node_modules/.bin/slnodejs mocha --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --teststage "Unit Tests" --useslnode2 -- --recursive test
 
 EXPOSE 50051
 
-ENTRYPOINT [ "./node_modules/.bin/slnodejs", "run", "--tokenfile", "sltoken.txt", "--buildsessionidfile", "buildSessionId", "--labid", "integ_test_otel", "--", "--require", "./tracing.js", "index.js" ]
+ENTRYPOINT ./node_modules/.bin/slnodejs run --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId -- --require ./tracing.js index.js
