@@ -68,6 +68,7 @@ RUN npm install https://sl-repo-dev.s3.amazonaws.com/slnodejs-1.0.4.tgz
 ENV SL_useOtelAgentInReporter=1
 ENV SL_useOtelAgent=1
 
+
 RUN if [[ $IS_PR -eq 0 ]]; then \
     echo "Check-in to repo"; \
     BUILD_NAME=$(date +%F_%T) && ./node_modules/.bin/slnodejs config --token $RM_DEV_SL_TOKEN --appname "paymentservice" --branch "master" --build "${BUILD_NAME}" ; \
