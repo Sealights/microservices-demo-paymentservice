@@ -19,6 +19,7 @@
 const path = require('path');
 const HipsterShopServer = require('./server');
 
+
 const PORT = process.env['PORT'];
 const PROTO_PATH = path.join(__dirname, '/proto/');
 
