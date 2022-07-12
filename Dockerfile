@@ -22,7 +22,8 @@ ARG PR_NUMBER=""
 ARG TARGET_REPO_URL=""
 ARG BUILD_NAME=""
 
-ENV RM_DEV_SL_TOKEN ${RM_DEV_SL_TOKEN}
+
+RM_DEV_SL_TOKEN ${RM_DEV_SL_TOKEN}
 ENV IS_PR ${IS_PR}
 ENV TARGET_BRANCH ${TARGET_BRANCH}
 ENV LATEST_COMMIT ${LATEST_COMMIT}
@@ -67,8 +68,8 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
-RUN npm install https://sl-repo-dev.s3.amazonaws.com/sl-otel-agent-0.4.1.tgz
-RUN npm install https://sl-repo-dev.s3.amazonaws.com/slnodejs-1.0.9.tgz
+RUN npm install https://sl-repo-dev.s3.amazonaws.com/sl-otel-agent-0.4.2.tgz
+RUN npm install https://sl-repo-dev.s3.amazonaws.com/slnodejs-1.1.0.tgz
 
 
 RUN if [[ $IS_PR -eq 0 ]]; then \
