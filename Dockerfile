@@ -20,6 +20,7 @@ ARG TARGET_BRANCH=""
 ARG LATEST_COMMIT=""
 ARG PR_NUMBER=""
 ARG TARGET_REPO_URL=""
+ARG BUILD_NAME=""
 
 ENV RM_DEV_SL_TOKEN ${RM_DEV_SL_TOKEN}
 ENV IS_PR ${IS_PR}
@@ -27,6 +28,7 @@ ENV TARGET_BRANCH ${TARGET_BRANCH}
 ENV LATEST_COMMIT ${LATEST_COMMIT}
 ENV PR_NUMBER ${PR_NUMBER}
 ENV TARGET_REPO_URL ${TARGET_REPO_URL}
+ENV BUILD_NAME ${BUILD_NAME}
 
 RUN echo "========================================================="
 RUN echo "targetBranch: ${TARGET_BRANCH}"
@@ -52,6 +54,9 @@ RUN npm install --only=production
 
 FROM base
 
+RUN apk add --update --no-cache \
+    git 
+
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
@@ -62,26 +67,23 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
-RUN npm install https://sl-repo-dev.s3.amazonaws.com/sl-otel-agent-0.3.2.tgz
-RUN npm install https://sl-repo-dev.s3.amazonaws.com/slnodejs-1.0.4.tgz
+RUN npm install https://sl-repo-dev.s3.amazonaws.com/sl-otel-agent-0.4.2.tgz
 
-ENV SL_useOtelAgentInReporter=1
-ENV SL_useOtelAgent=1
+RUN npm install https://sl-repo-dev.s3.amazonaws.com/slnodejs-1.1.0.tgz
+
 
 RUN if [[ $IS_PR -eq 0 ]]; then \
     echo "Check-in to repo"; \
-    BUILD_NAME=$(date +%F_%T) && ./node_modules/.bin/slnodejs config --token $RM_DEV_SL_TOKEN --appname "paymentservice" --branch "master" --build "${BUILD_NAME}" ; \
+    ./node_modules/.bin/slnodejs config --token $RM_DEV_SL_TOKEN --appname "paymentservice" --branch "master" --build "${BUILD_NAME}" ; \
 else \ 
     echo "Pull request"; \
     ./node_modules/.bin/slnodejs prConfig --token $RM_DEV_SL_TOKEN --appname "paymentservice" --targetBranch "${TARGET_BRANCH}" \
         --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}"; \
 fi
 
-RUN BUILD_NAME=$(date +%F_%T) && ./node_modules/.bin/slnodejs config --token $RM_DEV_SL_TOKEN --appname "paymentservice" --branch "master" --build "${BUILD_NAME}"
+RUN ./node_modules/.bin/slnodejs build --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --workspacepath "." --scm git --es6Modules
 
-RUN ./node_modules/.bin/slnodejs build --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --workspacepath "." --scm none --es6Modules
-
-RUN ./node_modules/.bin/slnodejs mocha --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --failbuild true --teststage "Unit Tests" --useslnode2 -- ./test/test.js
+RUN ./node_modules/.bin/slnodejs mocha --token $RM_DEV_SL_TOKEN --buildsessionidfile buildSessionId --failbuild true --teststage "Unit Tests" -- ./test/test.js
 
 EXPOSE 50051
 
