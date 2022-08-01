@@ -16,6 +16,7 @@ const path = require('path');
 const grpc = require('@grpc/grpc-js');
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
+const { startHttpServer } = require('./http-server')
 
 const charge = require('./charge');
 
@@ -61,7 +62,7 @@ class HipsterShopServer {
 
 
   listen() {
-    const server = this.server 
+    const server = this.server
     const port = this.port
     server.bindAsync(
       `0.0.0.0:${port}`,
@@ -108,5 +109,7 @@ class HipsterShopServer {
 }
 
 HipsterShopServer.PORT = process.env.PORT;
+
+startHttpServer()
 
 module.exports = HipsterShopServer;
