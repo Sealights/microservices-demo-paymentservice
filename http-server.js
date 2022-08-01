@@ -19,31 +19,34 @@ const charge = require('./charge');
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const logger = pino({
-  name: 'paymentservice-server',
-  messageKey: 'message',
-  levelKey: 'severity',
-  useLevelLabels: true
-});
+const startHttpServer = () => {
+  const logger = pino({
+    name: 'paymentservice-server',
+    messageKey: 'message',
+    levelKey: 'severity',
+    useLevelLabels: true
+  });
 
-const app = express()
-const port = 7001
+  const app = express()
+  const port = 7001
 
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.json())
 
 
-app.post('/convert', (req, res) => {
-  try {
-    logger.info(`PaymentService#Charge invoked with request ${JSON.stringify(req.body)}`);
-    const response = charge(req.body);
-    return res.send(response);
-  } catch (err) {
-    console.warn(err);
-  }
-})
+  app.post('/convert', (req, res) => {
+    try {
+      logger.info(`PaymentService#Charge invoked with request ${JSON.stringify(req.body)}`);
+      const response = charge(req.body);
+      return res.send(response);
+    } catch (err) {
+      console.warn(err);
+    }
+  })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+  app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`)
+  })
+}
 
+module.exports = { startHttpServer }
