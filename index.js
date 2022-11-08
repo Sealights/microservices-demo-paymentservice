@@ -16,6 +16,7 @@
 
 'use strict';
 
+
 const path = require('path');
 const HipsterShopServer = require('./server');
 
